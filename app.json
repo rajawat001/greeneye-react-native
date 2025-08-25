@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "GreenEye",
+    "slug": "greeneye",
+    "version": "1.0.0",
+    "sdkVersion": "53.0.0",
+    "scheme": "greeneye",
+    "deepLinking": true,
+    "platforms": [
+      "android",
+      "ios",
+      "web"
+    ],
+    "orientation": "portrait",
+    "icon": "./src/assets/images/plant.png",
+    "splash": {
+      "image": "./src/assets/images/plant.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ccffcc"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.anonymous.greeneyenative",
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/plant.png",
+        "backgroundColor": "#ccffcc"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "nextjs-greeneye-app-77z3.vercel.app",
+              "pathPrefix": "/plants"
+            },
+            {
+              "scheme": "https",
+              "host": "nextjs-greeneye-app-77z3.vercel.app",
+              "pathPrefix": "/blog"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f04749ee-3216-4f70-b6ae-5e37e0dc2718"
+      }
+    }
+  }
+}
