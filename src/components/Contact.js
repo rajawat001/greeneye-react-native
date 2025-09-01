@@ -144,18 +144,21 @@ export default function Contact() {
           <TextInput
             style={styles.input}
             placeholder={t("contact.firstName")}
+            placeholderTextColor="#888"
             value={form.firstName}
             onChangeText={(val) => handleChange("firstName", val)}
           />
           <TextInput
             style={styles.input}
             placeholder={t("contact.lastName")}
+            placeholderTextColor="#888"
             value={form.lastName}
             onChangeText={(val) => handleChange("lastName", val)}
           />
           <TextInput
             style={styles.input}
             placeholder={t("contact.emailAddress")}
+            placeholderTextColor="#888"
             value={form.email}
             onChangeText={(val) => handleChange("email", val)}
             keyboardType="email-address"
@@ -163,6 +166,7 @@ export default function Contact() {
           <TextInput
             style={styles.input}
             placeholder={t("contact.phoneNumber")}
+            placeholderTextColor="#888"
             value={form.phone}
             onChangeText={(val) => handleChange("phone", val)}
             keyboardType="phone-pad"
@@ -186,6 +190,7 @@ export default function Contact() {
           <TextInput
             style={[styles.input, { height: 80 }]}
             placeholder={t("contact.yourMessage")}
+            placeholderTextColor="#888"
             value={form.message}
             onChangeText={(val) => handleChange("message", val)}
             multiline

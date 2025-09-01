@@ -108,10 +108,12 @@ export default function CheckoutScreen() {
                 setPlacing(false);
                 return;
             }
+
             const orderItems = cart.items.map((item) => ({
                 plant: item.plant._id,
                 quantity: item.quantity,
             }));
+
             const shippingAddress = {
                 name: userInfo.name,
                 street: userInfo.street,
@@ -120,12 +122,14 @@ export default function CheckoutScreen() {
                 pincode: userInfo.pincode,
                 phone: userInfo.phone,
             };
+
             const orderData = {
                 orderItems,
                 shippingAddress,
                 paymentMethod,
             };
-            // 1. Place order to create a backend Razorpay order if Razorpay payment
+
+            // 1. Place order in backend
             const res = await axios.post(
                 `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/orders`,
                 orderData,
@@ -134,16 +138,15 @@ export default function CheckoutScreen() {
             const createdOrder = res.data;
 
             if (paymentMethod === "Razorpay") {
-                // 2. Get Razorpay API key from environment (or from backend)
                 const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID;
-                // 3. Setup Razorpay options
+
                 const options = {
                     key: RAZORPAY_KEY_ID,
-                    amount: createdOrder.totalPrice * 100, // Amount in paise
+                    amount: createdOrder.totalPrice * 100,
                     currency: "INR",
                     name: "GreenEye Store",
                     description: t("checkout.razorpayDesc"),
-                    order_id: createdOrder.paymentResult.id, // backend returns razorpay order_id
+                    order_id: createdOrder.paymentResult.id, // Razorpay order_id from backend
                     prefill: {
                         name: userInfo.name,
                         email: userInfo.email,
@@ -151,48 +154,29 @@ export default function CheckoutScreen() {
                     },
                     theme: { color: "#388e3c" },
                 };
+
                 if (!RazorpayCheckout || !RazorpayCheckout.open) {
-                    console.error("RazorpayCheckout module is not loaded correctly.");
+                    console.error("RazorpayCheckout module not loaded.");
                     setError("Razorpay module not available. Please check your installation.");
                     setPlacing(false);
                     return;
                 }
 
-                // 4. Open Razorpay checkout
+                // 2. Open Razorpay Checkout
                 RazorpayCheckout.open(options)
-                    .then(async (response) => {
-                        // 5. Verify payment on backend
-                        try {
-                            const verifyRes = await axios.post(
-                                `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/payment/verify`,
-                                {
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    orderId: createdOrder._id,
-                                },
-                                {
-                                    headers: { Authorization: `Bearer ${token}` },
-                                }
-                            );
-
-                            if (verifyRes.data.success) {
-                                setSuccess(t("checkout.paymentSuccess"));
-                                setTimeout(() => {
-                                    navigation.navigate("MyOrders");
-                                }, 1000);
-                            } else {
-                                setError(t("checkout.paymentVerifyFail"));
-                            }
-                        } catch (err) {
-                            setError(t("checkout.paymentVerifyFail"));
-                        }
+                    .then(() => {
+                        // ✅ Don't verify here, webhook will handle verification
+                        setSuccess(t("checkout.paymentProcessing"));
+                        setTimeout(() => {
+                            navigation.navigate("MyOrders");
+                        }, 1000);
                     })
                     .catch((err) => {
                         console.log("Razorpay payment error:", err);
                         setError(t("checkout.paymentCancelled") || "Payment cancelled");
                     });
             } else {
+                // COD case
                 setSuccess(t("checkout.orderPlacedCOD"));
                 setTimeout(() => {
                     navigation.navigate("MyOrders");

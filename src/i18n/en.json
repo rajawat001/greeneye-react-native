@@ -177,7 +177,8 @@
     "donationFail": "Donation failed. Please try again later.",
     "processing": "Processing...",
     "donateNow": "Donate Now",
-    "note": "All donations are secure and tax-deductible under 80G"
+    "note": "All donations are secure and tax-deductible under 80G",
+    "paymentProcessing": "Payment Processing"
   },
   "plantshop": {
     "storeTitle": "Plant Store",
@@ -315,7 +316,10 @@
     "items": "Items",
     "product": "Product",
     "total": "Total",
-    "payment": "Payment"
+    "payment": "Payment",
+    "paymentStatus": "Payment Status",
+    "paid": "Paid",
+    "notPaid": "Not Paid"
   },
   "donationDetails": {
     "loading": "Loading donation...",
@@ -351,7 +355,10 @@
     "items": "Items",
     "status": "Status",
     "delivered": "Delivered",
-    "pending": "Pending"
+    "pending": "Pending",
+    "paid": "Paid",
+    "notPaid": "Not Paid",
+    "payment": "Payment"
   },
   "profilePage": {
     "loading": "Loading profile...",
@@ -415,7 +422,9 @@
     "paymentSuccess": "Payment successful! 🌱",
     "paymentVerifyFail": "Payment verification failed.",
     "orderPlacedCOD": "Order placed successfully with COD!",
-    "placeOrderFail": "Failed to place order."
+    "placeOrderFail": "Failed to place order.",
+    "paymentProcessing": "Payment Processing",
+    "paymentCancelled": "Payment Cancelled"
   },
   "login": {
     "signInWithOtp": "Sign in With OTP",

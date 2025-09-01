@@ -17,12 +17,14 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { useNotification } from "./NotificationProvider";
 import { colors, layout } from "../theme";
+import { useNavigation } from "@react-navigation/native";
 
 const presetAmounts = [100, 500, 1000, 5000];
 
 export default function Donate() {
   const { t } = useTranslation();
-  const { showNotification } = useNotification();
+  const { showNotification } = useNotification();  
+  const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isTablet = width > 700;
 
@@ -34,6 +36,7 @@ export default function Donate() {
     donorPhone: "",
   });
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
 
   // Autofill donor info if logged in
   useEffect(() => {
@@ -41,7 +44,7 @@ export default function Donate() {
       let token = null;
       try {
         token = await AsyncStorage.getItem("authToken");
-      } catch {}
+      } catch { }
       if (!token) return;
       try {
         const { data } = await axios.get(
@@ -54,7 +57,7 @@ export default function Donate() {
           donorEmail: data.email || "",
           donorPhone: data.phone || "",
         }));
-      } catch {}
+      } catch { }
     };
     fetchProfile();
   }, []);
@@ -79,7 +82,7 @@ export default function Donate() {
     setLoading(true);
 
     try {
-      // Create order in backend
+      // 1. Create donation order in backend
       const { data } = await axios.post(
         `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/donations/create`,
         {
@@ -90,16 +93,15 @@ export default function Donate() {
         }
       );
 
-      // Launch Razorpay payment
-      let razorpayKey = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID;
+      // 2. Setup Razorpay options
+      const razorpayKey = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID;
       const options = {
         description: t("donate.razorpayDesc") || "Thank you for your support!",
-        image: undefined,
         currency: data.currency,
         key: razorpayKey,
         amount: data.amount,
         name: t("donate.razorpayTitle") || "GreenEye Donation",
-        order_id: data.orderId,
+        order_id: data.orderId, // Razorpay order_id from backend
         prefill: {
           name: form.donorName,
           email: form.donorEmail,
@@ -108,37 +110,25 @@ export default function Donate() {
         theme: { color: colors?.primaryGreen ?? "#388e3c" },
       };
 
+      // 3. Open Razorpay checkout
       RazorpayCheckout.open(options)
-        .then(async (response) => {
-          // Verify payment
-          try {
-            const verifyRes = await axios.post(
-              `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/donations/verify`,
-              {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                donationId: data.donationId,
-              }
-            );
-            if (verifyRes.data.success) {
-              showNotification(t("donate.successMessage", { amount }), "success");
-              setAmount("");
-              setForm({ donorName: "", donorEmail: "", donorPhone: "" });
-              setActiveBtn(null);
-              // Optionally, navigate to a "Thank You" or "My Donations" screen
-            } else {
-              showNotification(
-                t("donate.verifyFail") || "Payment verification failed. Please try again.",
-                "error"
-              );
-            }
-          } catch {
-            showNotification(
-              t("donate.verifyFail") || "Payment verification failed. Please try again.",
-              "error"
-            );
-          }
+        .then(() => {
+          // ✅ Don't verify here, webhook will handle it
+          showNotification(
+            t("donate.paymentProcessing") || "Payment is processing, please wait...",
+            "success"
+          );
+          setSuccess(t("donate.paymentProcessing"));
+          setTimeout(() => {
+            navigation.navigate("MyDonation");
+          }, 1000);
+          // Reset form
+          // setAmount("");
+          // setForm({ donorName: "", donorEmail: "", donorPhone: "" });
+          // setActiveBtn(null);
+
+          // Optionally navigate
+          // navigation.navigate("MyDonation");
         })
         .catch(() => {
           showNotification(
@@ -201,6 +191,7 @@ export default function Donate() {
           <TextInput
             style={styles.input}
             placeholder={t("donate.placeholderAmount")}
+            placeholderTextColor="#888"
             keyboardType="numeric"
             value={amount}
             onChangeText={(val) => {
@@ -211,12 +202,14 @@ export default function Donate() {
           <TextInput
             style={styles.input}
             placeholder={t("donate.placeholderName")}
+            placeholderTextColor="#888"
             value={form.donorName}
             onChangeText={(val) => handleChange("donorName", val)}
           />
           <TextInput
             style={styles.input}
             placeholder={t("donate.placeholderEmail")}
+            placeholderTextColor="#888"
             value={form.donorEmail}
             keyboardType="email-address"
             onChangeText={(val) => handleChange("donorEmail", val)}
@@ -224,6 +217,7 @@ export default function Donate() {
           <TextInput
             style={styles.input}
             placeholder={t("donate.placeholderPhone")}
+            placeholderTextColor="#888"
             value={form.donorPhone}
             keyboardType="phone-pad"
             onChangeText={(val) => handleChange("donorPhone", val)}

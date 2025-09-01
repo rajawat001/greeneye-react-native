@@ -57,24 +57,31 @@ export default function MyOrdersScreen() {
         <ProfileTabs />
         <Text style={styles.heading}>📦 {t("myOrders.heading")}</Text>
         {!orders.length ? (
-          <Text style={{ color: "#888", marginTop: 30 }}>{t("myOrders.notFound")}</Text>
+          <Text style={{ color: "#888", marginTop: 30 }}>
+            {t("myOrders.notFound")}
+          </Text>
         ) : (
           orders.map((order) => (
             <TouchableOpacity
               key={order._id}
               style={styles.card}
               activeOpacity={0.85}
-              onPress={() => navigation.navigate("OrderDetails", { id: order._id })}
+              onPress={() =>
+                navigation.navigate("OrderDetails", { id: order._id })
+              }
             >
               <Text style={styles.cardTitle}>
                 {t("myOrders.order")} #{order._id.slice(-6).toUpperCase()}
               </Text>
               <Text style={styles.cardInfo}>
-                {t("myOrders.placed")}: {new Date(order.createdAt).toLocaleString()}
+                {t("myOrders.placed")}:{" "}
+                {new Date(order.createdAt).toLocaleString()}
               </Text>
               <Text style={styles.cardInfo}>
                 {t("myOrders.items")}: {order.orderItems.length}
               </Text>
+
+              {/* ✅ Delivery Status */}
               <Text>
                 <Text style={{ fontWeight: "500" }}>{t("myOrders.status")}:</Text>{" "}
                 <Text
@@ -83,7 +90,22 @@ export default function MyOrdersScreen() {
                     fontWeight: "600",
                   }}
                 >
-                  {order.isDelivered ? t("myOrders.delivered") : t("myOrders.pending")}
+                  {order.isDelivered
+                    ? t("myOrders.delivered")
+                    : t("myOrders.pending")}
+                </Text>
+              </Text>
+
+              {/* ✅ Payment Status */}
+              <Text style={{ marginTop: 4 }}>
+                <Text style={{ fontWeight: "500" }}>{t("payment")}:</Text>{" "}
+                <Text
+                  style={{
+                    color: order.isPaid ? "#388e3c" : "#b62222",
+                    fontWeight: "600",
+                  }}
+                >
+                  {order.isPaid ? t("paid") : t("notPaid")}
                 </Text>
               </Text>
             </TouchableOpacity>

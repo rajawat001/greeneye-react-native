@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -12,12 +12,18 @@ import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useNotification } from "../components/NotificationProvider";
+import ReCaptcha from "@valture/react-native-recaptcha-v3";
+
+const SITE_KEY = process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY;
+const BASE_URL = "https://greeneye.foundation";
 
 export default function Login() {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const { showNotification } = useNotification();
+  const recaptchaRef = useRef(null);
 
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -29,8 +35,7 @@ export default function Login() {
   const [otpSent, setOtpSent] = useState(false);
   const [useOtpLogin, setUseOtpLogin] = useState(false);
 
-  const isEmailValid = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleChange = (name, value) =>
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -43,9 +48,20 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const { data } = await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/otp/send`, {
-        phone: form.mobile,
-      });
+      const token = await recaptchaRef.current?.getToken("login");
+
+      if (!token) {
+        showNotification("Captcha not solved yet, please try again", "error");
+        setLoading(false);
+        return;
+      }
+      const { data } = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/otp/send`,
+        {
+          phone: form.mobile,
+          recaptchaToken: token,
+        }
+      );
       setOtpSent(true);
       showNotification(data.message || "OTP sent successfully", "success");
     } catch (error) {
@@ -66,10 +82,13 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const { data } = await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/otp/login`, {
-        phone: form.mobile,
-        otp: form.otp,
-      });
+      const { data } = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/otp/login`,
+        {
+          phone: form.mobile,
+          otp: form.otp,
+        }
+      );
 
       if (data.token) {
         await AsyncStorage.setItem("authToken", data.token);
@@ -87,7 +106,6 @@ export default function Login() {
     }
   };
 
-
   const handlePasswordLogin = async () => {
     if (!isEmailValid(form.email)) {
       showNotification(t("login.invalidEmail"), "error");
@@ -101,11 +119,20 @@ export default function Login() {
 
     setLoading(true);
     try {
+      // ✅ captcha token le lo
+      const token = await recaptchaRef.current?.getToken("login");
+
+      if (!token) {
+        showNotification("Captcha not solved yet, please try again", "error");
+        setLoading(false);
+        return;
+      }
       const { data } = await axios.post(
         `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/users/login`,
         {
           email: form.email,
           password: form.password,
+          recaptchaToken: token,
         }
       );
 
@@ -113,7 +140,7 @@ export default function Login() {
         await AsyncStorage.setItem("authToken", data.token);
         showNotification(t("login.loginSuccess"), "success");
         navigation.replace("Profile");
-        setForm({ email: "", password: "", otp: "" });
+        setForm({ email: "", password: "", otp: "", mobile: "" });
       }
     } catch (error) {
       showNotification(
@@ -143,6 +170,7 @@ export default function Login() {
         <TextInput
           style={styles.input}
           placeholder="Enter Mobile Number"
+          placeholderTextColor="#888"
           value={form.mobile}
           onChangeText={(val) => handleChange("mobile", val)}
           keyboardType="phone-pad"
@@ -152,6 +180,7 @@ export default function Login() {
         <TextInput
           style={styles.input}
           placeholder={t("login.emailPlaceholder")}
+          placeholderTextColor="#888"
           value={form.email}
           onChangeText={(val) => handleChange("email", val)}
           keyboardType="email-address"
@@ -165,6 +194,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder={t("login.passwordPlaceholder")}
+            placeholderTextColor="#888"
             value={form.password}
             onChangeText={(val) => handleChange("password", val)}
             secureTextEntry={!showPwd}
@@ -187,6 +217,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="Enter OTP"
+            placeholderTextColor="#888"
             value={form.otp}
             onChangeText={(val) => handleChange("otp", val)}
             keyboardType="numeric"
@@ -233,16 +264,25 @@ export default function Login() {
         onPress={() => {
           setUseOtpLogin(!useOtpLogin);
           setOtpSent(false);
-          setForm({ email: "", password: "", otp: "", mobile: ""  });
+          setForm({ email: "", password: "", otp: "", mobile: "" });
         }}
         style={styles.toggleOtpBtn}
       >
         <Text style={styles.toggleOtpText}>
-          {useOtpLogin
-            ? "Login with Password"
-            : "Login with OTP"}
+          {useOtpLogin ? "Login with Password" : "Login with OTP"}
         </Text>
       </TouchableOpacity>
+
+      {/* ✅ ReCaptcha Component */}
+      <ReCaptcha
+        ref={recaptchaRef}
+        siteKey={SITE_KEY}
+        baseUrl={BASE_URL}
+        action="login"
+        onExecute={(token) => {
+          setRecaptchaToken(token);
+        }}
+      />
     </View>
   );
 }

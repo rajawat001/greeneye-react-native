@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -14,11 +14,18 @@ import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useNotification } from "../components/NotificationProvider";
+import ReCaptcha from "@valture/react-native-recaptcha-v3";
+
+const SITE_KEY = process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY;
+const BASE_URL = "https://greeneye.foundation";
 
 export default function Register() {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const { showNotification } = useNotification();
+  const recaptchaRef = useRef(null);
+
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -58,10 +65,17 @@ export default function Register() {
     setLoading(true);
     try {
       const phone = form.phone.startsWith("+") ? form.phone : `+91${form.phone}`;
+      const token = await recaptchaRef.current?.getToken("login");
 
+      if (!token) {
+        showNotification("Captcha not solved yet, please try again", "error");
+        setLoading(false);
+        return;
+      }
       await axios.post(`${process.env.EXPO_PUBLIC_API_BASE_URL}/api/otp/send`, {
         phone,
         email: form.email,
+        recaptchaToken: token,
       });
 
       setOtpSent(true);
@@ -136,7 +150,7 @@ export default function Register() {
       {/* WhatsApp (optional) */}
       <TouchableOpacity
         style={styles.waCard}
-        onPress={() => Linking.openURL("https://wa.me/919876543210")}
+        onPress={() => Linking.openURL("https://wa.me/916377845721")}
       >
         <Text style={styles.waIcon}>🟢</Text>
         <View style={{ marginLeft: 12 }}>
@@ -153,12 +167,14 @@ export default function Register() {
         <TextInput
           style={[styles.input, { flex: 1, marginRight: 5 }]}
           placeholder={t("register.firstName")}
+          placeholderTextColor="#888"
           value={form.firstName}
           onChangeText={(val) => handleChange("firstName", val)}
         />
         <TextInput
           style={[styles.input, { flex: 1, marginLeft: 5 }]}
           placeholder={t("register.lastName")}
+          placeholderTextColor="#888"
           value={form.lastName}
           onChangeText={(val) => handleChange("lastName", val)}
         />
@@ -167,6 +183,7 @@ export default function Register() {
       <TextInput
         style={styles.input}
         placeholder={t("register.email")}
+        placeholderTextColor="#888"
         value={form.email}
         onChangeText={(val) => handleChange("email", val)}
         keyboardType="email-address"
@@ -175,6 +192,7 @@ export default function Register() {
       <TextInput
         style={styles.input}
         placeholder={t("register.phone")}
+        placeholderTextColor="#888"
         value={form.phone}
         onChangeText={(val) => handleChange("phone", val)}
         keyboardType="phone-pad"
@@ -185,6 +203,7 @@ export default function Register() {
         <TextInput
           style={styles.input}
           placeholder={t("register.createPwd")}
+          placeholderTextColor="#888"
           value={form.password}
           onChangeText={(val) => handleChange("password", val)}
           secureTextEntry={!showPwd}
@@ -204,6 +223,7 @@ export default function Register() {
         <TextInput
           style={styles.input}
           placeholder={t("register.confirmPwd")}
+          placeholderTextColor="#888"
           value={form.confirmPassword}
           onChangeText={(val) => handleChange("confirmPassword", val)}
           secureTextEntry={!showConfirmPwd}
@@ -227,9 +247,9 @@ export default function Register() {
         <Text style={styles.checkbox}>{form.agreeTerms ? "☑️" : "⬜️"}</Text>
         <Text style={styles.checkboxLabel}>
           {t("register.agreeMsg1")}
-          <Text style={styles.link} onPress={() => Linking.openURL("https://greeneye.foundation/legal/terms-of-service")}>{t("termsLink")}</Text>
+          <Text style={styles.link} onPress={() => Linking.openURL("https://greeneye.foundation/legal/terms-of-service")}>{t("register.termsLink")}</Text>
           {t("register.agreeMsg2")}
-          <Text style={styles.link} onPress={() => Linking.openURL("https://greeneye.foundation/legal/privacy-policy")}>{t("privacyLink")}</Text>
+          <Text style={styles.link} onPress={() => Linking.openURL("https://greeneye.foundation/legal/privacy-policy")}>{t("register.privacyLink")}</Text>
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -240,10 +260,11 @@ export default function Register() {
         <Text style={styles.checkboxLabel}>{t("register.newsletter")}</Text>
       </TouchableOpacity>
 
-       {otpSent && (
+      {otpSent && (
         <TextInput
           style={styles.input}
           placeholder="Enter OTP"
+          placeholderTextColor="#888"
           value={otp}
           onChangeText={(val) => setOtp(val)}
           keyboardType="number-pad"
@@ -273,6 +294,16 @@ export default function Register() {
           <Text style={styles.linkText}>{t("register.signIn")}</Text>
         </Text>
       </TouchableOpacity>
+      {/* ✅ ReCaptcha Component */}
+      <ReCaptcha
+        ref={recaptchaRef}
+        siteKey={SITE_KEY}
+        baseUrl={BASE_URL}
+        action="otp_send"
+        onExecute={(token) => {
+          setRecaptchaToken(token);
+        }}
+      />
     </ScrollView>
   );
 }

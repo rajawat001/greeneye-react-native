@@ -92,6 +92,19 @@ export default function OrderDetailsScreen() {
             </Text>
           </Text>
 
+          {/* Payment Status */}
+          <Text style={{ marginBottom: 12 }}>
+            <Text style={{ fontWeight: "600" }}>{t("orderDetails.paymentStatus")}: </Text>
+            <Text
+              style={{
+                color: order.isPaid ? "#388e3c" : "#b62222",
+                fontWeight: "600",
+              }}
+            >
+              {order.isPaid ? t("orderDetails.paid") : t("orderDetails.notPaid")}
+            </Text>
+          </Text>
+
           <View style={{ marginBottom: 16 }}>
             <Text style={{ fontWeight: "600" }}>{t("orderDetails.shippingAddress")}:</Text>
             <Text>{order.shippingAddress?.name}</Text>

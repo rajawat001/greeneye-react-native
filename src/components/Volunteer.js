@@ -253,6 +253,7 @@ export default function Volunteer() {
               <TextInput
                 style={styles.input}
                 placeholder={t("volunteerForm.name")}
+                placeholderTextColor="#888"
                 value={form.name}
                 onChangeText={(val) => handleChange("name", val)}
                 editable={!isLoggedIn}
@@ -260,6 +261,7 @@ export default function Volunteer() {
               <TextInput
                 style={styles.input}
                 placeholder={t("volunteerForm.email")}
+                placeholderTextColor="#888"
                 value={form.email}
                 onChangeText={(val) => handleChange("email", val)}
                 keyboardType="email-address"
@@ -268,6 +270,7 @@ export default function Volunteer() {
               <TextInput
                 style={styles.input}
                 placeholder={t("volunteerForm.phone")}
+                placeholderTextColor="#888"
                 value={form.phone}
                 onChangeText={(val) => handleChange("phone", val)}
                 keyboardType="phone-pad"
@@ -277,6 +280,7 @@ export default function Volunteer() {
                 <TextInput
                   style={styles.input}
                   placeholder={t("volunteerForm.password")}
+                  placeholderTextColor="#888"
                   value={form.password}
                   onChangeText={(val) => handleChange("password", val)}
                   secureTextEntry
@@ -287,6 +291,7 @@ export default function Volunteer() {
               <TextInput
                 style={styles.input}
                 placeholder={t("volunteerForm.selectCity")}
+                placeholderTextColor="#888"
                 value={form.city}
                 onChangeText={(val) => handleChange("city", val)}
               />
@@ -294,6 +299,7 @@ export default function Volunteer() {
               <TextInput
                 style={styles.input}
                 placeholder={t("volunteerForm.availability")}
+                placeholderTextColor="#888"
                 value={form.availability}
                 onChangeText={(val) => handleChange("availability", val)}
               />
@@ -301,6 +307,7 @@ export default function Volunteer() {
               <TextInput
                 style={styles.input}
                 placeholder={t("volunteerForm.selectSector")}
+                placeholderTextColor="#888"
                 value={form.sector}
                 onChangeText={(val) => handleChange("sector", val)}
               />
@@ -308,6 +315,7 @@ export default function Volunteer() {
               <TextInput
                 style={styles.input}
                 placeholder={t("volunteerForm.selectProfession")}
+                placeholderTextColor="#888"
                 value={form.profession}
                 onChangeText={(val) => handleChange("profession", val)}
               />
@@ -315,6 +323,7 @@ export default function Volunteer() {
               <TextInput
                 style={[styles.input, { height: 90 }]}
                 placeholder={t("volunteerForm.motivation")}
+                placeholderTextColor="#888"
                 value={form.motivation}
                 onChangeText={(val) => handleChange("motivation", val)}
                 multiline

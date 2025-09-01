@@ -175,7 +175,7 @@ export default function PlantShopScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder={t("plantshop.searchPlaceholder")}
-            placeholderTextColor="#a9b6af"
+            placeholderTextColor="#3d6550ff"
             value={search}
             onChangeText={setSearch}
             clearButtonMode="while-editing"
